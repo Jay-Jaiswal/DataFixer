@@ -1,0 +1,338 @@
+/* --- 1. Dark Theme Variables & Global Styles --- */
+:root {
+  --primary-color: #6366f1;
+  /* A modern indigo */
+  --primary-hover: #4f46e5;
+  --secondary-color: #10b981;
+  /* Green for success/download */
+  --secondary-hover: #059669;
+  --danger-color: #ef4444;
+  /* Red for highlighting issues */
+  --bg-dark: #111827;
+  /* Main background */
+  --bg-card: #1f2937;
+  /* Card background */
+  --border-color: #374151;
+  /* Borders and dividers */
+  --text-primary: #f9fafb;
+  /* Headings and primary text */
+  --text-secondary: #9ca3af;
+  /* Subtitles and secondary text */
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: var(--bg-dark);
+}
+
+#root {
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* --- 2. Main Upload Container --- */
+.container {
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  padding: 2.5rem;
+  background-color: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-color);
+}
+
+.container h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.container p {
+  color: var(--text-secondary);
+}
+
+/* --- 3. Custom File Input --- */
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+  padding: 20px;
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.file-upload-label:hover {
+  background-color: #2b3a4e;
+  border-color: var(--primary-color);
+}
+
+.file-upload-label .placeholder {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.file-upload-label .filename {
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+/* --- 4. Buttons & Status --- */
+.button-group {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.analyzeBtn {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.analyzeBtn:hover {
+  background-color: var(--primary-hover);
+}
+
+.cleanBtn {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.cleanBtn:hover {
+  background-color: var(--secondary-hover);
+}
+
+button:disabled {
+  background-color: #4b5563;
+  cursor: not-allowed;
+}
+
+#status {
+  margin-top: 1rem;
+  color: var(--text-secondary);
+  min-height: 1.2em;
+}
+
+/* --- 5. Loading Spinner --- */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- 6. Report Component Styles --- */
+.results-container {
+  text-align: left;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 3rem;
+}
+
+h2,
+h3 {
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.recommendations-box {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid #fbbF24;
+  color: #fde68a;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.recommendations-box ul {
+  padding-left: 20px;
+  margin: 0;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--bg-card);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.stat-card .icon {
+  background-color: #3730a3;
+  color: #a5b4fc;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.stat-card .value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.stat-card .label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.columns-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.column-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.column-card.problem {
+  border-left: 4px solid var(--danger-color);
+}
+
+.issue-badge {
+  background-color: var(--danger-color);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dtype-badge {
+  background-color: #374151;
+  color: #d1d5db;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.column-stats li {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
+}
+
+.column-stats li strong {
+  color: var(--text-primary);
+}
+
+.progress-bar-container {
+  background-color: #374151;
+  border-radius: 10px;
+  height: 8px;
+  width: 100%;
+}
+
+.progress-bar {
+  background-color: #fb923c;
+  height: 100%;
+  border-radius: 10px;
+}
+
+.preview-table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  border: 1px solid var(--border-color);
+  padding: 12px;
+  text-align: left;
+}
+
+th {
+  background-color: #374151;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--border-color);
+}
+
+tbody tr:nth-child(even) {
+  background-color: var(--bg-card);
+}
+
+/* Results area below the upload card */
+.results-area {
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 2rem;
+}
+
+.placeholder-results {
+  color: var(--text-secondary);
+  padding: 1.5rem;
+  text-align: center;
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+}
