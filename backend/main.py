@@ -27,6 +27,7 @@ async def root():
             "analyze": "/api/upload-and-analyze/ (POST multipart/form-data file=...)",
             "clean": "/api/clean-file/ (POST multipart/form-data file=...)",
             "preview_cleaning": "/api/preview-cleaning/ (POST multipart/form-data file=...)",
+            "profile_report": "/api/profile-report/ (POST multipart/form-data file=...) returns HTML report",
             "docs": "/docs"
         },
         "cleaning_options": {
@@ -55,6 +56,10 @@ def generate_data_report(df: pd.DataFrame) -> dict:
     
     from collections import Counter
     column_counts = Counter(df.columns)
+    
+    # Track cleanliness metrics
+    total_issues = 0
+    total_possible_issues = 0
     
     for col in df.columns:
         col_data = df[col]
@@ -101,23 +106,57 @@ def generate_data_report(df: pd.DataFrame) -> dict:
                 details['is_numeric_like'] = False
         
         reasons = []
+        column_issues = 0
+        
+        # Count issues for cleanliness calculation
         if details['missing_percentage'] > 20:
             reasons.append(f"High missing rate: {details['missing_percentage']}%")
+            column_issues += 1
         if details.get('mixed_capitalization'):
             reasons.append("Inconsistent capitalization")
+            column_issues += 1
         if details.get('outlier_count', 0) > 0:
             reasons.append(f"{details.get('outlier_count', 0)} potential outliers")
+            column_issues += 1
         if details.get('is_numeric_like'):
             reasons.append("Numeric-looking strings")
+            column_issues += 1
         
         if column_counts[col] > 1:
             details['has_problem'] = True
             details['reasons'] = reasons + [f"Duplicate column name: {col}"]
+            column_issues += 1
         else:
             details['has_problem'] = missing_count > 0
             details['reasons'] = reasons
+            if missing_count > 0:
+                column_issues += 1
+        
+        # Add to totals for cleanliness calculation
+        total_issues += column_issues
+        total_possible_issues += 6  # max possible issues per column
         
         report['column_details'][col] = details
+    
+    # Calculate overall cleanliness percentage
+    data_issues = 0
+    if report['overview']['duplicate_rows'] > 0:
+        data_issues += 1
+    if report['overview']['total_missing_values'] > 0:
+        data_issues += 1
+    
+    # Calculate cleanliness score (0-100)
+    if total_possible_issues > 0:
+        column_cleanliness = max(0, 100 - (total_issues / total_possible_issues * 100))
+    else:
+        column_cleanliness = 100
+    
+    data_cleanliness = max(0, 100 - (data_issues * 10))  # Each data issue reduces score by 10
+    
+    # Weighted average: 70% columns, 30% overall data
+    overall_cleanliness = int((column_cleanliness * 0.7) + (data_cleanliness * 0.3))
+    
+    report['overview']['cleanliness_percentage'] = overall_cleanliness
     
     return report
 
@@ -252,6 +291,68 @@ def perform_standard_cleaning(df: pd.DataFrame,
         print(f"Error cleaning column names: {e}")
     
     return df_cleaned
+
+
+@app.post("/api/profile-report/")
+async def profile_report(file: UploadFile = File(...)):
+    """
+    Generate a ydata-profiling (pandas-profiling) HTML report for the uploaded dataset.
+    Returns a downloadable HTML file.
+    """
+    try:
+        # Lazy import to avoid adding import cost unless endpoint is used
+        try:
+            from ydata_profiling import ProfileReport  # package: ydata-profiling
+        except Exception as e:
+            return JSONResponse(
+                status_code=501,
+                content={
+                    "message": (
+                        "Profiling not available: ydata-profiling is not installed or not supported. "
+                        "Please ensure ydata-profiling is installed and compatible with your Python version."
+                    ),
+                    "detail": str(e)
+                }
+            )
+
+        content = await file.read()
+        file_extension = file.filename.split('.')[-1].lower() if file.filename else ''
+
+        # Reuse robust parsing logic
+        if file_extension == 'csv':
+            try:
+                txt = content.decode('utf-8')
+            except Exception:
+                txt = content.decode('latin-1')
+            df = pd.read_csv(StringIO(txt), sep=None, engine='python')
+        elif file_extension == 'json':
+            try:
+                obj = json.loads(content.decode('utf-8'))
+            except Exception:
+                obj = json.loads(content.decode('latin-1'))
+            if isinstance(obj, list):
+                df = pd.DataFrame(obj)
+            else:
+                df = pd.json_normalize(obj)
+        else:
+            return JSONResponse(status_code=400, content={"message": "Unsupported file type"})
+
+        # Guard against extremely large datasets: sample up to 10k rows for speed
+        max_rows = 10000
+        if len(df) > max_rows:
+            df = df.sample(n=max_rows, random_state=42)
+
+        # Generate profile (minimal to speed up, no progress bar in server logs)
+        profile: ProfileReport = ProfileReport(df, minimal=True, explorative=False)
+        html_bytes = profile.to_html().encode('utf-8')
+
+        headers = {
+            "Content-Disposition": f"attachment; filename=profile_{file.filename.rsplit('.', 1)[0]}.html"
+        }
+        return StreamingResponse(iter([html_bytes]), media_type="text/html", headers=headers)
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"message": f"Error generating profile: {str(e)}"})
 
 
 @app.post("/api/upload-and-analyze/")

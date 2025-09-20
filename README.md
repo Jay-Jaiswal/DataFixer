@@ -1,8 +1,8 @@
-# DataFixer 🚀
+# DataFixer
 
 A comprehensive data cleaning and analysis tool that automatically detects data quality issues and provides intelligent cleaning recommendations for CSV and JSON files.
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Project Overview](#project-overview)
 - [Features](#features)
@@ -19,7 +19,7 @@ A comprehensive data cleaning and analysis tool that automatically detects data 
 - [Contributing](#contributing)
 - [License](#license)
 
-## 🎯 Project Overview
+## Project Overview
 
 DataFixer is a full-stack web application designed to help data analysts, researchers, and developers quickly identify and resolve common data quality issues. The tool provides:
 
@@ -29,7 +29,7 @@ DataFixer is a full-stack web application designed to help data analysts, resear
 - **One-Click Cleaning**: Automated data cleaning with configurable strategies
 - **Professional Reports**: Detailed analysis reports with visual indicators and statistics
 
-## ✨ Features
+## Features
 
 ### Core Functionality
 - **Multi-format Support**: Handles CSV and JSON files seamlessly
@@ -51,8 +51,10 @@ DataFixer is a full-stack web application designed to help data analysts, resear
 - **Interactive UI**: Modern, responsive web interface
 - **Data Preview**: Sample data display for verification
 - **Progress Indicators**: Visual feedback during processing
+- **Professional Data Profiling**: Full-featured HTML profiling reports using YData Profiling
+- **Data Quality Scoring**: Intelligent cleanliness percentage calculation
 
-## 🏗️ Architecture
+## Architecture
 
 DataFixer follows a modern client-server architecture with clear separation of concerns:
 
@@ -81,13 +83,14 @@ DataFixer follows a modern client-server architecture with clear separation of c
 - **Component-based**: Modular UI components for maintainability
 - **Responsive Design**: Mobile-friendly interface
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 ### Backend
 - **Python 3.13+**: Core programming language
 - **FastAPI**: Modern, fast web framework for building APIs
 - **Pandas**: Data manipulation and analysis library
 - **NumPy**: Numerical computing library
+- **YData Profiling**: Advanced data profiling and HTML report generation
 - **Uvicorn**: ASGI server for running FastAPI applications
 - **Python-dotenv**: Environment variable management
 
@@ -102,7 +105,7 @@ DataFixer follows a modern client-server architecture with clear separation of c
 - **Virtual Environment**: Python dependency isolation
 - **Package Managers**: pip (Python), npm (Node.js)
 
-## 🚀 Installation & Setup
+## Installation & Setup
 
 ### Prerequisites
 - Python 3.13 or higher
@@ -131,6 +134,11 @@ DataFixer follows a modern client-server architecture with clear separation of c
 3. **Install dependencies**
    ```bash
    pip install -r requirements.txt
+   ```
+   
+   Note: For full profiling functionality, ensure `ydata-profiling` is installed:
+   ```bash
+   pip install ydata-profiling
    ```
 
 4. **Run the backend server**
@@ -175,15 +183,16 @@ MAX_FILE_SIZE=10485760  # 10MB
 SUPPORTED_FORMATS=csv,json
 ```
 
-## 📖 Usage
+## Usage
 
 ### Web Interface
 
 1. **Open the application** in your web browser
 2. **Upload a file** by dragging and dropping or clicking the upload area
 3. **Analyze data** by clicking the "Analyze Data" button
-4. **Review the report** showing data quality issues and recommendations
-5. **Clean and download** the processed data using "Clean & Download"
+4. **Review the report** showing data quality issues, cleanliness score, and recommendations
+5. **Generate professional profile** by clicking the "Generate Profile" button for comprehensive HTML reports
+6. **Clean and download** the processed data using "Clean & Download"
 
 ### Supported File Formats
 
@@ -203,7 +212,7 @@ SUPPORTED_FORMATS=csv,json
 - **Recommended row limit**: 100,000 rows for optimal performance
 - **Column limit**: No strict limit, but performance may degrade with 100+ columns
 
-## 🔌 API Documentation
+## API Documentation
 
 ### Base URL
 ```
@@ -234,6 +243,7 @@ GET /
   "endpoints": {
     "analyze": "/api/upload-and-analyze/ (POST multipart/form-data file=...)",
     "clean": "/api/clean-file/ (POST multipart/form-data file=...)",
+    "profile_report": "/api/profile-report/ (POST multipart/form-data file=...)",
     "docs": "/docs"
   }
 }
@@ -252,7 +262,8 @@ POST /api/upload-and-analyze/
       "rows": 1000,
       "columns": 15,
       "total_missing_values": 45,
-      "duplicate_rows": 12
+      "duplicate_rows": 12,
+      "cleanliness_percentage": 73
     },
     "column_details": {
       "column_name": {
@@ -274,7 +285,23 @@ POST /api/upload-and-analyze/
 }
 ```
 
-#### 4. Data Cleaning
+#### 4. Professional Data Profiling
+```http
+POST /api/profile-report/
+```
+**Request:** Multipart form data with file
+**Response:** HTML profiling report download (generated using YData Profiling)
+**Features:**
+- Comprehensive statistical analysis
+- Data visualizations and charts
+- Missing value patterns
+- Correlation matrices
+- Data distribution analysis
+- Interactive HTML report
+
+**Note:** Requires `ydata-profiling` package to be installed. For large datasets (>10k rows), sampling is applied for performance.
+
+#### 5. Data Cleaning
 ```http
 POST /api/clean-file/
 ```
@@ -290,7 +317,7 @@ POST /api/clean-file/
 POST /api/clean-file/?missing_threshold=0.6&fill_strategy=drop
 ```
 
-#### 5. Cleaning Preview
+#### 6. Cleaning Preview
 ```http
 POST /api/preview-cleaning/
 ```
@@ -346,7 +373,7 @@ Error responses include descriptive messages:
 }
 ```
 
-## 🎨 Frontend Components
+## Frontend Components
 
 ### App.jsx
 Main application component that handles:
@@ -357,6 +384,7 @@ Main application component that handles:
 
 ### Report.jsx
 Data analysis display component featuring:
+- **Data Quality Score**: Visual cleanliness percentage with color-coded status indicators
 - **Overview Statistics**: Row count, column count, missing values, duplicates
 - **Column Analysis**: Detailed breakdown of each column's data quality
 - **Recommendations**: Actionable suggestions for data improvement
@@ -368,7 +396,7 @@ Data analysis display component featuring:
 - **Interactive Elements**: Hover effects, animations, and visual feedback
 - **Color-coded Issues**: Problem indicators and status badges
 
-## 🔍 Data Quality Detection
+## Data Quality Detection
 
 ### Missing Values
 - **Detection**: Identifies null, NaN, and empty string values
@@ -395,7 +423,7 @@ Data analysis display component featuring:
 - **Whitespace**: Detects leading/trailing spaces
 - **Special Characters**: Flags non-standard characters in data
 
-## 🧹 Data Cleaning Solutions
+## Data Cleaning Solutions
 
 ### Automatic Cleaning Strategies
 
@@ -451,7 +479,7 @@ def perform_standard_cleaning(df: pd.DataFrame,
 - **Logging**: Detailed information about cleaning decisions
 - **Preview mode**: See cleaning impact before applying changes
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 DataFixer/
@@ -489,7 +517,7 @@ DataFixer/
 - **`App.css`**: Comprehensive styling for the user interface
 - **`package.json`**: Node.js dependencies and build scripts
 
-## 🚀 Development
+## Development
 
 ### Running in Development Mode
 
@@ -558,7 +586,7 @@ npm run lint
 - Follow React best practices
 - Maintain component reusability
 
-## 🤝 Contributing
+## Contributing
 
 ### Development Workflow
 
@@ -607,18 +635,18 @@ npm run lint
 - Cross-browser compatibility
 - Accessibility testing
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - **FastAPI**: For the excellent Python web framework
 - **Pandas**: For powerful data manipulation capabilities
 - **React**: For the modern frontend framework
 - **Vite**: For fast build tooling
 
-## 📞 Support
+## Support
 
 For questions, issues, or contributions:
 - **Issues**: Create an issue on the project repository
@@ -627,4 +655,7 @@ For questions, issues, or contributions:
 
 ---
 
-**DataFixer** - Making data cleaning simple, fast, and intelligent! 🚀
+**DataFixer** - Making data cleaning simple, fast, and intelligent!
+## Branding & Customization
+
+The application uses a custom logo (`logo.gif`) as both the main interface logo and the browser tab favicon. To update the branding, simply replace the `logo.gif` file in the `public` folder of the frontend project. The favicon and all branding will update automatically.

@@ -2,6 +2,35 @@ import React, { useState } from 'react';
 
 const displayValue = (value, fallback = 'N/A') => value ?? fallback;
 
+const CleanlinessScore = ({ percentage }) => {
+    const getCleanlinessStatus = (score) => {
+        if (score >= 90) return { text: "Excellent", color: "#10b981" };
+        if (score >= 75) return { text: "Good", color: "#8b5cf6" };
+        if (score >= 50) return { text: "Fair", color: "#f59e0b" };
+        if (score >= 25) return { text: "Poor", color: "#f97316" };
+        return { text: "Critical", color: "#ef4444" };
+    };
+
+    const status = getCleanlinessStatus(percentage);
+
+    return (
+        <div className="cleanliness-score">
+            <div className="cleanliness-content">
+                <div className="cleanliness-title">Data Quality Score</div>
+                <div className="cleanliness-circle">
+                    <div className="cleanliness-inner">
+                        <div className="cleanliness-percentage">{percentage}%</div>
+                        <div className="cleanliness-label">Clean</div>
+                    </div>
+                </div>
+                <div className="cleanliness-status" style={{ color: status.color }}>
+                    {status.text}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 function Report({ data }) {
     const [showColumns, setShowColumns] = useState(false);
     const [showPreviewAll, setShowPreviewAll] = useState(false);
@@ -14,6 +43,8 @@ function Report({ data }) {
 
     return (
         <div className="results-container">
+            <CleanlinessScore percentage={displayValue(overview.cleanliness_percentage, 0)} />
+
             <div className="recommendations-box">
                 <h3>Recommended Actions</h3>
                 <ul>
