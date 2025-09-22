@@ -21,19 +21,33 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
+    try:
+        import ydata_profiling
+        profiling_available = True
+        profiling_version = ydata_profiling.__version__
+    except ImportError:
+        profiling_available = False
+        profiling_version = None
+    
     return {
         "message": "Data Cleaner API running.",
         "endpoints": {
             "analyze": "/api/upload-and-analyze/ (POST multipart/form-data file=...)",
             "clean": "/api/clean-file/ (POST multipart/form-data file=...)",
             "preview_cleaning": "/api/preview-cleaning/ (POST multipart/form-data file=...)",
-            "profile_report": "/api/profile-report/ (POST multipart/form-data file=...) returns HTML report",
+            "profile_report": "/api/profile-report/ (POST multipart/form-data file=...) returns HTML report" if profiling_available else "/api/profile-report/ (DISABLED - ydata-profiling not available)",
+            "profiling_status": "/api/profiling-status",
             "docs": "/docs"
         },
         "cleaning_options": {
             "missing_threshold": "Configurable threshold for dropping columns (default: 0.8 = 80%)",
             "fill_strategy": "auto/drop/fill - controls how to handle high-missing-value columns",
             "preview_mode": "Use /api/preview-cleaning/ to see what will happen before cleaning"
+        },
+        "features": {
+            "profiling_available": profiling_available,
+            "profiling_version": profiling_version,
+            "auto_install_fallback": True
         }
     }
 
@@ -41,6 +55,26 @@ async def root():
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/api/profiling-status")
+async def profiling_status():
+    """
+    Check if ydata-profiling is available for use.
+    """
+    try:
+        import ydata_profiling
+        return {
+            "available": True,
+            "version": ydata_profiling.__version__,
+            "message": "Profiling functionality is available"
+        }
+    except ImportError:
+        return {
+            "available": False,
+            "version": None,
+            "message": "ydata-profiling is not installed. Install with: pip install ydata-profiling"
+        }
 
 
 def generate_data_report(df: pd.DataFrame) -> dict:
@@ -300,9 +334,29 @@ async def profile_report(file: UploadFile = File(...)):
     Returns a downloadable HTML file.
     """
     try:
-        # Lazy import to avoid adding import cost unless endpoint is used
+        # Lazy import with automatic installation fallback
         try:
             from ydata_profiling import ProfileReport  # package: ydata-profiling
+        except ImportError:
+            # Attempt to install ydata-profiling automatically
+            import subprocess
+            import sys
+            try:
+                print("ydata-profiling not found. Attempting to install...")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", "ydata-profiling"])
+                from ydata_profiling import ProfileReport
+                print("ydata-profiling installed successfully!")
+            except Exception as install_error:
+                return JSONResponse(
+                    status_code=501,
+                    content={
+                        "message": (
+                            "Profiling not available: ydata-profiling could not be installed automatically. "
+                            "Please install it manually using: pip install ydata-profiling"
+                        ),
+                        "detail": str(install_error)
+                    }
+                )
         except Exception as e:
             return JSONResponse(
                 status_code=501,

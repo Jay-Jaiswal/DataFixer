@@ -4,3 +4,4 @@ pandas
 numpy
 python-multipart
 requests
+ydata-profiling

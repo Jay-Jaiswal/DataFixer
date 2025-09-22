@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Report from './components/Report';
 import './App.css';
 
@@ -23,6 +23,23 @@ function App() {
   const [isGeneratingProfile, setIsGeneratingProfile] = useState(false);
   const [profileProgress, setProfileProgress] = useState(0);
   const [profileMessage, setProfileMessage] = useState('');
+  const [profilingAvailable, setProfilingAvailable] = useState(true);
+
+  // Check profiling availability on component mount
+  useEffect(() => {
+    const checkProfilingStatus = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/profiling-status');
+        const data = await response.json();
+        setProfilingAvailable(data.available);
+      } catch (error) {
+        console.error('Failed to check profiling status:', error);
+        setProfilingAvailable(false);
+      }
+    };
+
+    checkProfilingStatus();
+  }, []);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -219,8 +236,14 @@ function App() {
           <button onClick={handleCleanAndDownload} className="cleanBtn" disabled={isLoading || !file}>
             {isLoading && <Spinner />} Clean & Download
           </button>
-          <button onClick={handleProfileReport} className="analyzeBtn" disabled={isLoading || !file || isGeneratingProfile}>
-            {isGeneratingProfile ? <Spinner /> : (isLoading && <Spinner />)} Generate Profile
+          <button
+            onClick={handleProfileReport}
+            className="analyzeBtn"
+            disabled={isLoading || !file || isGeneratingProfile || !profilingAvailable}
+            title={!profilingAvailable ? "Profiling feature is not available on this server" : "Generate comprehensive data profile report"}
+          >
+            {isGeneratingProfile ? <Spinner /> : (isLoading && <Spinner />)}
+            {profilingAvailable ? 'Generate Profile' : 'Profile (Unavailable)'}
           </button>
         </div>
 
