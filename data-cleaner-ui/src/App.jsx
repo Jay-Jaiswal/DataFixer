@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import Report from './components/Report';
 import './App.css';
 
+// API Base URL - automatically switches between development and production
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 const Spinner = () => <div className="spinner"></div>;
 
 const ProgressBar = ({ progress, message }) => (
@@ -29,7 +32,7 @@ function App() {
   useEffect(() => {
     const checkProfilingStatus = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/profiling-status');
+        const response = await fetch(`${API_BASE_URL}/api/profiling-status`);
         const data = await response.json();
         setProfilingAvailable(data.available);
       } catch (error) {
@@ -64,7 +67,7 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/${endpoint}/`, {
+      const response = await fetch(`${API_BASE_URL}/api/${endpoint}/`, {
         method: 'POST',
         body: formData,
       });
@@ -159,7 +162,7 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/profile-report/`, {
+      const response = await fetch(`${API_BASE_URL}/api/profile-report/`, {
         method: 'POST',
         body: formData,
       });

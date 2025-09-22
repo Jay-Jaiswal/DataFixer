@@ -1,7 +1,24 @@
-fastapi
-uvicorn[standard]
-pandas
-numpy
-python-multipart
-requests
-ydata-profiling
+# Core FastAPI dependencies
+fastapi==0.116.1
+uvicorn[standard]==0.32.1
+
+# Data processing
+pandas==2.3.2
+numpy==2.3.2
+
+# File handling
+python-multipart==0.0.19
+python-dotenv==1.1.1
+
+# HTTP requests
+requests==2.32.5
+
+# Optional: Data profiling (may fail on some platforms)
+ydata-profiling==4.16.1
+
+# Additional dependencies for ydata-profiling
+setuptools>=65.0.0
+wheel>=0.37.0
+
+# For better compatibility
+typing-extensions>=4.0.0

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import json
+import os
 from io import StringIO
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse, StreamingResponse
@@ -9,12 +10,37 @@ from fastapi.middleware.cors import CORSMiddleware
 from detection import DataIssueDetector
 from solution import DataIssueSolver
 
-app = FastAPI()
+# Production configuration
+PORT = int(os.environ.get("PORT", 8000))
+HOST = os.environ.get("HOST", "0.0.0.0")
+ENV = os.environ.get("ENV", "development")
+
+# CORS origins for production
+CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "https://your-frontend-domain.com",  # Replace with your actual frontend domain
+    "https://your-frontend-domain.netlify.app",  # If using Netlify
+    "https://your-frontend-domain.vercel.app",  # If using Vercel
+]
+
+# Use wildcard only in development
+if ENV == "development":
+    CORS_ORIGINS = ["*"]
+
+app = FastAPI(
+    title="DataFixer API",
+    description="Professional data cleaning and analysis API",
+    version="1.0.0",
+    docs_url="/docs" if ENV != "production" else None,  # Hide docs in production
+    redoc_url="/redoc" if ENV != "production" else None
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=CORS_ORIGINS, 
     allow_credentials=True, 
-    allow_methods=["*"], 
+    allow_methods=["GET", "POST"], 
     allow_headers=["*"],
 )
 
@@ -660,4 +686,8 @@ async def preview_cleaning(file: UploadFile = File(...),
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print(f"🚀 Starting DataFixer API...")
+    print(f"📍 Environment: {ENV}")
+    print(f"🌐 Host: {HOST}:{PORT}")
+    print(f"🔗 CORS Origins: {CORS_ORIGINS}")
+    uvicorn.run(app, host=HOST, port=PORT)
